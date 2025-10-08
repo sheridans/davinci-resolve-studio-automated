@@ -1,0 +1,15 @@
+# Build artifacts
+pkg/
+src/
+*.log
+
+# Downloaded files
+DaVinci_Resolve_Studio_*.zip
+*.run
+
+# Temporary files
+*.tmp
+*~
+
+# Makepkg generated files
+.SRCINFO.bak

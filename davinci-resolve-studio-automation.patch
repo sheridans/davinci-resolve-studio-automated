@@ -1,0 +1,64 @@
+--- PKGBUILD.old	2025-10-03 02:32:37.989726651 +0100
++++ PKGBUILD	2025-10-08 12:12:30.329040321 +0100
+@@ -13,6 +13,34 @@
+ pkgname=davinci-resolve-studio
+ pkgver=20.2.1
+ pkgrel=1
++
++pkgver() {
++  local zipfile
++  mapfile -t zipfiles < <(find . -maxdepth 1 -name "DaVinci_Resolve_Studio_*_Linux.zip" -type f)
++
++  if [[ ${#zipfiles[@]} -eq 0 ]]; then
++    echo "ERROR: No DaVinci_Resolve_Studio_*_Linux.zip file found in current directory" >&2
++    echo "Please download from: https://www.blackmagicdesign.com/support/family/davinci-resolve-and-fusion" >&2
++    exit 1
++  elif [[ ${#zipfiles[@]} -gt 1 ]]; then
++    echo "ERROR: Multiple DaVinci Resolve zip files found:" >&2
++    printf "  %s\n" "${zipfiles[@]}" >&2
++    echo "Please keep only one version" >&2
++    exit 1
++  fi
++
++  zipfile="${zipfiles[0]}"
++  local version
++  version=$(basename "$zipfile" | sed -n 's/DaVinci_Resolve_Studio_\([0-9][0-9.]*[0-9]\)_Linux\.zip/\1/p')
++
++  if [[ -z "$version" ]]; then
++    echo "ERROR: Could not extract version from filename: $zipfile" >&2
++    echo "Expected format: DaVinci_Resolve_Studio_X.Y.Z_Linux.zip" >&2
++    exit 1
++  fi
++
++  echo "$version"
++}
+ pkgdesc='Professional A/V post-production software suite from Blackmagic Design. Studio edition, requires license key or license dongle.'
+ arch=('x86_64')
+ url="https://www.blackmagicdesign.com/support/family/davinci-resolve-and-fusion"
+@@ -25,12 +53,25 @@
+ conflicts=('davinci-resolve' 'davinci-resolve-beta' 'davinci-resolve-studio-beta')
+ source=("file://DaVinci_Resolve_Studio_${pkgver}_Linux.zip"
+         "davinci-control-panels-setup.sh")
+-sha256sums=('5f88b36e17e953607f91aeba35775a1e4c9475dccf98bae92766aa1b67e820de'
++sha256sums=('SKIP'
+             'f17236fd68cead727c647bc31404e402922cdd491df5526f4b62364cbef9d3b8')
+ install="${pkgname}.install"
+ options=('!strip')
+ 
+ prepare() {
++  local zipfile="DaVinci_Resolve_Studio_${pkgver}_Linux.zip"
++
++  if [[ ! -f "$zipfile" ]]; then
++    echo "ERROR: Expected file not found: $zipfile" >&2
++    exit 1
++  fi
++
++  echo "Processing DaVinci Resolve Studio v${pkgver}"
++  echo "File: $zipfile ($(stat -c%s "$zipfile" | numfmt --to=iec-i)B)"
++
++  # Extract the .run file from the zip
++  unzip -q "$zipfile" "DaVinci_Resolve_Studio_${pkgver}_Linux.run"
++
+   chmod u+x "./DaVinci_Resolve_Studio_${pkgver}_Linux.run"
+   "./DaVinci_Resolve_Studio_${pkgver}_Linux.run" --appimage-extract
+ 
