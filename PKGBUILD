@@ -16,16 +16,13 @@ pkgrel=1
 
 pkgver() {
   local zipfile
-  mapfile -t zipfiles < <(find . -maxdepth 1 -name "DaVinci_Resolve_Studio_*_Linux.zip" -type f)
+  # Search in current directory, parent directory, and common build locations
+  mapfile -t zipfiles < <(find . .. "${srcdir:-}" -maxdepth 1 -name "DaVinci_Resolve_Studio_*_Linux.zip" -type f -o -type l 2>/dev/null | head -1)
 
   if [[ ${#zipfiles[@]} -eq 0 ]]; then
-    echo "ERROR: No DaVinci_Resolve_Studio_*_Linux.zip file found in current directory" >&2
+    echo "ERROR: No DaVinci_Resolve_Studio_*_Linux.zip file found" >&2
+    echo "Searched in: current directory, parent directory, and srcdir" >&2
     echo "Please download from: https://www.blackmagicdesign.com/support/family/davinci-resolve-and-fusion" >&2
-    exit 1
-  elif [[ ${#zipfiles[@]} -gt 1 ]]; then
-    echo "ERROR: Multiple DaVinci Resolve zip files found:" >&2
-    printf "  %s\n" "${zipfiles[@]}" >&2
-    echo "Please keep only one version" >&2
     exit 1
   fi
 
